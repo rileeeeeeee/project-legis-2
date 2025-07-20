@@ -1,67 +1,39 @@
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded and parsed');
-    
-    // Initialize page system
     const pages = document.querySelectorAll('.page-content');
     const navLinks = document.querySelectorAll('.nav-link');
     
-    // Show home page immediately
-    pages.forEach(page => {
-        page.classList.remove('active');
-        if (page.id === 'home') page.classList.add('active');
-    });
-    
     function showPage(pageId) {
-        console.log(`Showing page: ${pageId}`);
-        pages.forEach(page => {
-            page.classList.toggle('active', page.id === pageId);
-        });
-        
+        pages.forEach(page => page.classList.toggle('active', page.id === pageId));
         navLinks.forEach(link => {
-            const linkPage = link.dataset.page || (link.getAttribute('href') ? link.getAttribute('href').substring(1) : null);
+            const linkPage = link.dataset.page || (link.getAttribute('href') ? link.getAttribute('href').substring(1) : null;
             link.classList.toggle('active', linkPage === pageId);
         });
-        
         window.scrollTo(0, 0);
         
-        // Close selection analysis panel
+        // Close selection analysis panel when navigating to any page
         const panel = document.getElementById('selectionAnalysisPanel');
         if (panel) panel.style.display = 'none';
     }
     
-    // Navigation setup
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const pageId = e.currentTarget.dataset.page || e.currentTarget.getAttribute('href').substring(1);
-            console.log(`Navigation to: ${pageId}`);
             showPage(pageId);
         });
     });
 
-    // Initialize Analyst Page
-    const initAnalystPage = () => {
-        console.log('Initializing analyst page');
-        const inputText = document.getElementById('inputText');
-        const clauseTypeSelect = document.getElementById('clauseType');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const resultsSection = document.getElementById('resultsSection');
-        const yourClauseOutput = document.getElementById('yourClauseOutput');
-        const marketAnalysisOutput = document.getElementById('marketAnalysisOutput');
-        const inputForm = document.getElementById('inputForm');
-        const resetBtn = document.getElementById('resetBtn');
-        
-        // Check if all elements exist
-        if (!inputText || !clauseTypeSelect || !analyzeBtn || !resultsSection || 
-            !yourClauseOutput || !marketAnalysisOutput || !inputForm || !resetBtn) {
-            console.error('Missing elements in analyst page:', {
-                inputText, clauseTypeSelect, analyzeBtn, resultsSection,
-                yourClauseOutput, marketAnalysisOutput, inputForm, resetBtn
-            });
-            return;
-        }
-
-        // Create tooltip
+    const analystPage = document.getElementById('analyst');
+    if (analystPage) {
+        const inputText = analystPage.querySelector('#inputText');
+        const clauseTypeSelect = analystPage.querySelector('#clauseType');
+        const analyzeBtn = analystPage.querySelector('#analyzeBtn');
+        const resultsSection = analystPage.querySelector('#resultsSection');
+        const yourClauseOutput = analystPage.querySelector('#yourClauseOutput');
+        const marketAnalysisOutput = analystPage.querySelector('#marketAnalysisOutput');
+        const inputForm = analystPage.querySelector('#inputForm');
+        const resetBtn = analystPage.querySelector('#resetBtn');
+        const resetResultsBtn = analystPage.querySelector('#resetResultsBtn'); // ADDED
         const tooltip = document.createElement('div');
         tooltip.id = 'tooltip';
         document.body.appendChild(tooltip);
@@ -80,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clauseTypeSelect.value = '';
             checkInputs();
             
+            // Close selection analysis panel on reset
             const panel = document.getElementById('selectionAnalysisPanel');
             if (panel) panel.style.display = 'none';
         }
@@ -88,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clauseTypeSelect.addEventListener('change', checkInputs);
         analyzeBtn.addEventListener('click', startAnalysisJob);
         resetBtn.addEventListener('click', resetView);
+        if (resetResultsBtn) resetResultsBtn.addEventListener('click', resetView); // ADDED
 
         async function startAnalysisJob() {
             resultsSection.classList.remove('hidden');
@@ -101,12 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userClause: inputText.value, clauseType: clauseTypeSelect.value })
                 });
-                
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Analysis failed');
-                }
-                
+                if (!response.ok) throw new Error((await response.json()).error);
                 const { jobId } = await response.json();
                 pollForResult(jobId);
             } catch (error) {
@@ -125,23 +94,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     yourClauseOutput.innerHTML = '';
                     return;
                 }
-                
                 try {
                     const statusResponse = await fetch(`/api/status/${jobId}`);
                     if (!statusResponse.ok) return;
-                    
                     const result = await statusResponse.json();
                     if (result.status === 'complete') {
                         clearInterval(pollingInterval);
                         renderMainAnalysis(result.data.mainAnalysis);
                     } else if (result.status === 'error') {
                         clearInterval(pollingInterval);
-                        marketAnalysisOutput.innerHTML = `<p class="text-red-400">An error occurred: ${result.error}</p>`;
+                        marketAnalysisOutput.innerHTML = `<p class="text-red-400">An error occurred during analysis: ${result.error}</p>`;
                         yourClauseOutput.innerHTML = '';
                     }
-                } catch (e) {
-                    console.error('Polling error:', e);
-                }
+                } catch (e) { /* Ignore fetch errors */ }
             }, 3000);
         }
 
@@ -156,43 +121,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function formatMarkdown(text) {
-            if (typeof text !== 'string') return '';
+             if (typeof text !== 'string') return '';
             const lines = escapeHTML(text).split('\n');
             let html = '';
             let inList = false;
-            
             lines.forEach(line => {
                 line = line.trim();
                 line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-100">$1</strong>');
-                
                 if (line.startsWith('#')) {
                     if (inList) { html += '</ul>'; inList = false; }
                     const headingText = line.replace(/^#+\s*/, '');
                     html += `<h3 class="text-lg font-semibold text-indigo-300 mb-3 mt-6 border-b border-gray-700 pb-2">${headingText}</h3>`;
                     return;
                 }
-                
                 if (line.startsWith('-') || line.startsWith('*')) {
                     if (!inList) { html += '<ul class="list-disc list-inside space-y-2 mb-4">'; inList = true; }
                     html += `<li class="ml-4">${line.replace(/^[\*-]\s*/, '')}</li>`;
                     return;
                 }
-                
                 if (inList) { html += '</ul>'; inList = false; }
                 if (line.length > 0) { html += `<p class="mb-4">${line}</p>`; }
             });
-            
             if (inList) { html += '</ul>'; }
             return html;
         }
         
+        // FIXED: Prevent partial word matching
         function renderInteractiveClause(annotations) {
             const originalText = inputText.value;
             
+            // Helper function to check if character is word boundary
             function isWordBoundary(char) {
                 return !(/[a-zA-Z0-9]/).test(char);
             }
 
+            // 1. Find all occurrences with boundary checking
             const positions = [];
             annotations.forEach(ann => {
                 if (!ann.phrase) return;
@@ -203,9 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const start = match.index;
                     const end = start + match[0].length;
                     
+                    // Check boundaries
                     const prevChar = start > 0 ? originalText[start - 1] : '';
                     const nextChar = end < originalText.length ? originalText[end] : '';
                     
+                    // Only include if surrounded by word boundaries
                     if (isWordBoundary(prevChar) && isWordBoundary(nextChar)) {
                         positions.push({
                             start,
@@ -218,6 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // 2. Filter and sort
             let filteredPositions = positions.filter(pos => {
                 const phrase = pos.matchedText;
                 return phrase.length >= 4 && 
@@ -229,17 +195,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return (b.end - b.start) - (a.end - a.start);
             });
 
+            // 3. Build HTML with non-overlapping highlights
             let lastEnd = 0;
             let htmlFragments = [];
             
             for (const pos of filteredPositions) {
+                // Skip positions inside previous highlights
                 if (pos.start < lastEnd) continue;
                 
+                // Add text before this highlight
                 if (pos.start > lastEnd) {
                     const before = originalText.substring(lastEnd, pos.start);
                     htmlFragments.push(escapeHTML(before));
                 }
                 
+                // Add the highlighted portion
                 htmlFragments.push(
                     `<span class="highlight" data-explanation="${escapeHTML(pos.explanation)}">${escapeHTML(pos.matchedText)}</span>`
                 );
@@ -247,15 +217,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastEnd = pos.end;
             }
             
+            // Add remaining text
             if (lastEnd < originalText.length) {
                 const after = originalText.substring(lastEnd);
                 htmlFragments.push(escapeHTML(after));
             }
 
+            // 4. Set final HTML with proper line breaks
             yourClauseOutput.innerHTML = htmlFragments.join('').replace(/\n/g, '<br>');
         }
         
-        // Selection analysis UI
+        // Enhanced selection analysis UI
         const selectionAnalysisBtn = document.createElement('button');
         selectionAnalysisBtn.id = 'selectionAnalysisBtn';
         selectionAnalysisBtn.textContent = 'Analyze Selection';
@@ -274,14 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         document.body.appendChild(selectionAnalysisPanel);
 
-        // Panel event listeners
-        const closePanelBtn = document.getElementById('closePanel');
-        if (closePanelBtn) {
-            closePanelBtn.addEventListener('click', () => {
-                selectionAnalysisPanel.style.display = 'none';
-            });
-        }
+        // Close panel handler
+        document.getElementById('closePanel').addEventListener('click', () => {
+            selectionAnalysisPanel.style.display = 'none';
+        });
         
+        // Close panel when clicking outside of it
         document.addEventListener('click', (e) => {
             const panel = document.getElementById('selectionAnalysisPanel');
             if (panel && panel.style.display === 'flex' && 
@@ -291,12 +261,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Text selection handler - FIXED: Only show button for document content
         yourClauseOutput.addEventListener('mouseup', (e) => {
+            // Only show button if we're in results view
             if (resultsSection.classList.contains('hidden')) return;
             
             const selection = window.getSelection();
             const selectedText = selection.toString().trim();
             
+            // Only proceed if we have valid selection in the clause output
             if (selectedText.length > 3) {
                 const range = selection.getRangeAt(0);
                 const rect = range.getBoundingClientRect();
@@ -309,17 +282,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Hide button when clicking elsewhere - FIXED: Don't hide when clicking button
         document.addEventListener('mousedown', (e) => {
             if (e.target !== selectionAnalysisBtn && !yourClauseOutput.contains(e.target)) {
                 selectionAnalysisBtn.style.display = 'none';
             }
         });
 
-        selectionAnalysisBtn.addEventListener('click', async () => {
+        // Selection analysis handler - FIXED: Proper event handling
+        selectionAnalysisBtn.addEventListener('click', async (e) => {
             const selectedText = selectionAnalysisBtn.dataset.selection;
             if (!selectedText) return;
             
-            selectionAnalysisBtn.style.display = 'none';
+            // Don't hide the button here - we'll hide it after processing
             selectionAnalysisPanel.style.display = 'flex';
             
             const contentDiv = document.getElementById('selectionAnalysisContent');
@@ -360,22 +335,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             }
+            
+            // Hide the button after opening the panel
+            selectionAnalysisBtn.style.display = 'none';
         });
         
-        // Tooltip functionality
         document.addEventListener('mouseover', e => {
             if (e.target.classList.contains('highlight')) {
                 tooltip.textContent = e.target.dataset.explanation;
                 tooltip.style.display = 'block';
             }
         });
-        
         document.addEventListener('mouseout', e => {
             if (e.target.classList.contains('highlight')) {
                 tooltip.style.display = 'none';
             }
         });
-        
         document.addEventListener('mousemove', e => {
             if (tooltip.style.display === 'block') {
                 tooltip.style.left = e.pageX + 15 + 'px';
@@ -386,53 +361,36 @@ document.addEventListener('DOMContentLoaded', () => {
         function escapeRegExp(string) { 
             return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
         }
-        
         function escapeHTML(str) {
             if (typeof str !== 'string') return '';
             const div = document.createElement('div');
             div.appendChild(document.createTextNode(str));
             return div.innerHTML;
         }
-    };
+    }
 
-    // Use Cases Page
-    const initUseCasesPage = () => {
-        const useCasesPage = document.getElementById('use-cases');
-        if (useCasesPage) {
-            useCasesPage.querySelectorAll('.use-case-btn').forEach(button => {
-                button.addEventListener('click', () => {
-                    const text = button.nextElementSibling.value;
-                    const analystInput = document.getElementById('inputText');
-                    const clauseTypeSelect = document.getElementById('clauseType');
+    const useCasesPage = document.getElementById('use-cases');
+    if (useCasesPage) {
+        useCasesPage.querySelectorAll('.use-case-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const text = button.nextElementSibling.value;
+                const analystInput = document.getElementById('inputText');
+                const clauseTypeSelect = document.getElementById('clauseType');
+                if (analystInput) {
+                    analystInput.value = text;
+                    const buttonText = button.textContent.toLowerCase();
+                    if (buttonText.includes('indemnification')) clauseTypeSelect.value = 'indemnification';
+                    else if (buttonText.includes('confidentiality')) clauseTypeSelect.value = 'confidentiality';
+                    else if (buttonText.includes('liability')) clauseTypeSelect.value = 'limitation_of_liability';
                     
-                    if (analystInput && clauseTypeSelect) {
-                        analystInput.value = text;
-                        const buttonText = button.textContent.toLowerCase();
-                        
-                        if (buttonText.includes('indemnification')) clauseTypeSelect.value = 'indemnification';
-                        else if (buttonText.includes('confidentiality')) clauseTypeSelect.value = 'confidentiality';
-                        else if (buttonText.includes('liability')) clauseTypeSelect.value = 'limitation_of_liability';
-                        
-                        const analyzeBtn = document.getElementById('analyzeBtn');
-                        if (analyzeBtn) analyzeBtn.disabled = false;
-                        
-                        const resultsSection = document.getElementById('resultsSection');
-                        if (resultsSection) resultsSection.classList.add('hidden');
-                        
-                        const inputForm = document.getElementById('inputForm');
-                        if (inputForm) inputForm.style.display = 'block';
-                    }
-                    
-                    showPage('analyst');
-                });
+                    document.getElementById('analyzeBtn').disabled = false;
+                    document.getElementById('resultsSection').classList.add('hidden');
+                    document.getElementById('inputForm').style.display = 'block';
+                }
+                showPage('analyst');
             });
-        }
-    };
+        });
+    }
 
-    // Initialize all pages
-    initAnalystPage();
-    initUseCasesPage();
-    
-    // Show home page (already shown, but ensure)
     showPage('home');
 });

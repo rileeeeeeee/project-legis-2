@@ -1,0 +1,17 @@
+{
+  "name": "project-legis-v2",
+  "version": "2.0.0",
+  "description": "An AI-powered legal analysis tool.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Riley Ward",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,387 @@
+/* Add to the top of public/styles.css */
+
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+main {
+    flex-grow: 1;
+}
+/* --- Base Styles --- */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #0a0a0a; 
+    color: #e5e7eb; 
+}
+
+.text-glow { 
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3), 0 0 20px rgba(79, 70, 229, 0.4); 
+}
+
+.nav-link.active { 
+    color: white; 
+    font-weight: 600; 
+    border-bottom: 2px solid #4f46e5; 
+}
+
+.page-content { 
+    display: none; 
+    animation: fadeIn 0.5s ease-in-out; 
+}
+
+.page-content.active { 
+    display: block; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* --- Progress Bar Styles --- */
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #1f2937;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    width: 0%;
+    height: 100%;
+    background-color: #4f46e5;
+    transition: width 0.5s ease-in-out;
+}
+
+.analysis-block {
+    background-color: #111827; /* bg-gray-900 */
+    border: 1px solid #374151; /* border-gray-700 */
+    border-radius: 0.5rem; /* rounded-lg */
+    overflow: hidden; /* Ensures content respects the rounded corners */
+}
+
+.comparison-column {
+    background-color: #111827; /* bg-gray-900 */
+    display: flex;
+    flex-direction: column;
+}
+
+.column-header {
+    padding: 0.75rem 1.5rem; /* py-3 px-6 */
+    font-weight: 600;
+    color: #c7d2fe; /* text-indigo-200 */
+    background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800 with opacity */
+    border-bottom: 1px solid #374151; /* border-gray-700 */
+}
+
+.column-content {
+    padding: 1.5rem; /* p-6 */
+    min-height: 250px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap; /* Allows wrapping and respects newlines */
+}
+
+/* Style for placeholder text in output columns */
+.column-content:empty::before {
+    content: 'Awaiting analysis...';
+    color: #6b7280; /* text-gray-500 */
+    font-style: italic;
+}
+/* Add to the bottom of public/styles.css */
+
+.column-content ul {
+    list-style-position: outside;
+    padding-left: 1rem; /* Indent the bullet points */
+}
+
+.column-content li {
+    padding-left: 0.5rem; /* Space between bullet and text */
+    margin-bottom: 0.75rem; /* More space between list items */
+}
+
+/* Specific styling for the Market Analysis column for better readability */
+#marketAnalysisOutput strong {
+    color: #e5e7eb; /* Brighter text for bolded items */
+}
+
+#marketAnalysisOutput h3 {
+    border-top: 1px solid #374151; /* Add a separator line above sub-headers */
+    padding-top: 1rem;
+}
+
+#marketAnalysisOutput h3:first-child {
+    border-top: none; /* Don't put a line above the very first header */
+    margin-top: 0;
+    padding-top: 0;
+}
+/* Style for the highlighted text */
+.highlight {
+    background-color: rgba(167, 139, 250, 0.25); /* Semi-transparent violet */
+    border-bottom: 2px solid rgba(139, 92, 246, 0.7); /* Solid violet underline */
+    padding: 0 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.highlight:hover {
+    background-color: rgba(167, 139, 250, 0.4);
+}
+
+/* Style for the tooltip popup */
+#tooltip {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    background-color: #1f2937; /* bg-gray-800 */
+    color: #e5e7eb; /* text-gray-200 */
+    border: 1px solid #4f46e5; /* border-indigo-600 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.75rem 1rem; /* py-3 px-4 */
+    font-size: 0.875rem; /* text-sm */
+    max-width: 300px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    pointer-events: none; /* Prevents the tooltip from interfering with mouse events */
+}
+.specialist-item {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #374151; /* border-gray-700 */
+}
+
+.specialist-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.specialist-item .name {
+    font-weight: 600;
+    color: #e5e7eb; /* text-gray-200 */
+    display: flex;
+    align-items: center;
+}
+
+.specialist-item .reason {
+    font-size: 0.9rem;
+    color: #d1d5db; /* text-gray-300 */
+    padding-left: 1.75rem; /* Indent the reason */
+}
+
+.status-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.status-icon.problem {
+    color: #fca5a5; /* text-red-300 */
+}
+
+.status-icon.ok {
+    color: #86efac; /* text-green-300 */
+}
+.progress-bar-indeterminate {
+    height: 100%;
+    width: 50%;
+    background-color: #4f46e5;
+    border-radius: 4px;
+    animation: indeterminate-progress 2s infinite ease-in-out;
+}
+
+@keyframes indeterminate-progress {
+    0% { margin-left: -50%; }
+    100% { margin-left: 100%; }
+}
+/* Add to bottom of styles.css */
+#selectionAnalysisBtn {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    transform: translateY(5px);
+    transition: opacity 0.2s ease;
+}
+
+#selectionAnalysisPanel {
+    box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+}
+
+#selectionAnalysisPanel .analysis-content h4 {
+    font-weight: 600;
+    color: #c7d2fe;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #4f46e5;
+    padding-bottom: 0.25rem;
+}
+
+#selectionAnalysisPanel .analysis-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#selectionAnalysisPanel .analysis-content li {
+    margin-bottom: 0.5rem;
+}
+
+#closePanel {
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.highlight {
+    background-color: rgba(167, 139, 250, 0.25);
+    border-bottom: 2px solid rgba(139, 92, 246, 0.7);
+    padding: 0 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.highlight:hover {
+    background-color: rgba(167, 139, 250, 0.4);
+}
+
+#tooltip {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border: 1px solid #4f46e5;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    max-width: 300px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+}
+/* Add to bottom of styles.css */
+/* Selection Analysis UI */
+#selectionAnalysisBtn {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    transform: translateY(5px);
+    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+#selectionAnalysisBtn:hover {
+    background-color: #4f46e5;
+    transform: translateY(5px) scale(1.03);
+}
+
+#selectionAnalysisPanel {
+    box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+}
+
+#closePanel {
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    transition: transform 0.2s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+#closePanel:hover {
+    background-color: rgba(255,255,255,0.1);
+    transform: rotate(90deg);
+}
+
+#selectionAnalysisPanel .analysis-content h4 {
+    font-weight: 600;
+    color: #c7d2fe;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid #4f46e5;
+    padding-bottom: 0.25rem;
+}
+
+#selectionAnalysisPanel .analysis-content ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#selectionAnalysisPanel .analysis-content li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+}
+
+/* Highlight styles */
+.highlight {
+    background-color: rgba(139, 92, 246, 0.2);
+    border-bottom: 2px solid rgba(139, 92, 246, 0.7);
+    padding: 0 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    position: relative;
+    z-index: 50;
+}
+
+.highlight:hover {
+    background-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+/* Tooltip */
+#tooltip {
+    display: none;
+    position: absolute;
+    z-index: 100;
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border: 1px solid #4f46e5;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    max-width: 320px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.25);
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    line-height: 1.5;
+}
+
+/* Loading spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #selectionAnalysisPanel {
+        width: 100% !important;
+    }
+}
+#closePanel {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 100;
+}

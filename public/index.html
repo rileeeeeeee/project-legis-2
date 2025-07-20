@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Legis - AI-Powered Legal Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="antialiased">
+    <header class="bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#home" class="nav-link flex items-center space-x-2" data-page="home">
+                <svg class="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                <h1 class="text-xl font-bold tracking-tighter text-white">Project Legis</h1>
+            </a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#analyst" class="nav-link text-gray-400 hover:text-white transition-colors pb-1" data-page="analyst">The Analyst</a>
+                <a href="#how-it-works" class="nav-link text-gray-400 hover:text-white transition-colors pb-1" data-page="how-it-works">How It Works</a>
+                <a href="#about" class="nav-link text-gray-400 hover:text-white transition-colors pb-1" data-page="about">About</a>
+                <a href="#use-cases" class="nav-link text-gray-400 hover:text-white transition-colors pb-1" data-page="use-cases">Use Cases</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div id="home" class="page-content active">
+            <section class="text-center py-24 md:py-40 px-4">
+                <div class="max-w-6xl mx-auto">
+                    <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tighter text-white mb-4 text-glow">Clarity in Complexity.</h1>
+                    <p class="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-10">
+                        Project Legis is an AI-powered legal analysis platform that benchmarks your contracts against market standards. Designed for legal professionals, students, and business owners, our tool provides actionable insights to help you negotiate better contracts and understand complex clauses.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 max-w-5xl mx-auto">
+                        <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                            <div class="text-indigo-400 text-3xl mb-4">⚖️</div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Market Standard Analysis</h3>
+                            <p class="text-gray-400">Benchmark your contracts against industry standards and identify deviations</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                            <div class="text-indigo-400 text-3xl mb-4">🔍</div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Deep Clause Examination</h3>
+                            <p class="text-gray-400">Analyze specific clauses with our interactive selection tool</p>
+                        </div>
+                        <div class="bg-gray-900/50 p-6 rounded-xl border border-gray-800">
+                            <div class="text-indigo-400 text-3xl mb-4">💡</div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Strategic Insights</h3>
+                            <p class="text-gray-400">Get negotiation points and risk assessments for any contract</p>
+                        </div>
+                    </div>
+                    <button class="nav-link bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-500 transition-all duration-300 transform hover:scale-105 mt-16" data-page="analyst">Launch The Analyst</button>
+                </div>
+            </section>
+        </div>
+
+        <div id="analyst" class="page-content">
+            <!-- Analyst content remains the same as before -->
+        </div>
+
+        <div id="how-it-works" class="page-content">
+            <div class="container mx-auto px-6 py-16 md:py-24">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 text-center">How Project Legis Works</h2>
+                    <div class="space-y-8 text-lg text-gray-300 leading-relaxed">
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8">
+                            <div class="flex items-start mb-4">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">1</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-indigo-300 mb-2">Input Your Legal Text</h3>
+                                    <p>Paste any legal clause into the text area. Select the clause type to provide context for more accurate analysis. Our system handles everything from short clauses to multi-page agreements.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8">
+                            <div class="flex items-start mb-4">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">2</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-indigo-300 mb-2">AI-Powered Benchmarking</h3>
+                                    <p>Project Legis uses Google's Gemini 1.5 Flash model to analyze your text against thousands of market-standard agreements. Our specialized prompt engineering extracts key insights about strengths, weaknesses, and negotiation points.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8">
+                            <div class="flex items-start mb-4">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">3</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-indigo-300 mb-2">Interactive Analysis</h3>
+                                    <p>The system presents a comprehensive market analysis along with your original document. For deeper examination, highlight any text and click "Analyze Selection" to get context-specific insights about that particular clause or phrase.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-900/20 border border-yellow-500 rounded-lg p-6 mt-12">
+                            <h4 class="font-bold text-yellow-300">Important Legal Disclaimer</h4>
+                            <p class="mt-2">Project Legis is an experimental tool designed for educational purposes only. It does not provide legal advice and should not be used as a substitute for professional legal counsel. The AI-generated output may contain inaccuracies and should be verified by a qualified legal professional.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="about" class="page-content">
+            <div class="container mx-auto px-6 py-16 md:py-24">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 text-center">About Project Legis</h2>
+                    <div class="space-y-8 text-lg text-gray-300 leading-relaxed bg-gray-900 border border-gray-800 rounded-lg p-8 md:p-12">
+                        <p>Project Legis was born from a recognition that while AI won't replace lawyers, it will fundamentally transform how legal professionals work. The next generation of lawyers won't be replaced by AI—they'll be professionals who know how to leverage AI to enhance their practice.</p>
+                        
+                        <p>As an experimental project, Legis explores how AI can help:</p>
+                        
+                        <ul class="list-disc pl-6 space-y-2">
+                            <li>Quickly benchmark contracts against market standards</li>
+                            <li>Identify potential risks in complex agreements</li>
+                            <li>Provide negotiation points for better outcomes</li>
+                            <li>Help students understand complex legal language</li>
+                            <li>Enable small businesses to review contracts without expensive counsel</li>
+                        </ul>
+                        
+                        <p>Built on Google's cutting-edge Gemini 1.5 Flash model, Project Legis represents what's possible when legal expertise meets advanced AI technology. It's not a finished product, but a demonstration of how AI can augment—not replace—legal analysis.</p>
+                        
+                        <div class="mt-8 pt-8 border-t border-gray-800">
+                            <h3 class="text-xl font-semibold text-indigo-300 mb-4">About the Creator</h3>
+                            <p>Project Legis was created by Riley Ward, a developer passionate about the intersection of law and technology. With a background in both fields, Riley built this project to demonstrate how AI can be practically applied to real-world legal challenges.</p>
+                            
+                            <p class="mt-6 text-center italic">"The future of law isn't AI replacing lawyers—it's lawyers using AI to provide better, faster, and more accessible legal services."</p>
+                            <p class="text-center mt-6">- Riley Ward</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="use-cases" class="page-content">
+            <div class="container mx-auto px-6 py-16 md:py-24">
+                <div class="max-w-5xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 text-center">Practical Applications</h2>
+                    <p class="text-lg text-gray-400 text-center mb-12">Project Legis is designed for anyone who works with contracts. Here's how different professionals can benefit:</p>
+                    <div class="space-y-8">
+                        <div class="bg-gray-900 p-8 rounded-lg border border-gray-700">
+                            <div class="flex items-start">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-lg w-14 h-14 flex items-center justify-center mr-6 flex-shrink-0 text-2xl">⚖️</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">For Legal Professionals</h3>
+                                    <p class="text-gray-400 mb-4">Quickly benchmark clauses against market standards, identify potential risks in agreements, and develop negotiation strategies. Use as a first-pass review tool before deep analysis.</p>
+                                    <div class="mt-4">
+                                        <button class="use-case-btn bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-500 transition-colors mr-3">Indemnification Clause</button>
+                                        <button class="use-case-btn bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-500 transition-colors">Liability Clause</button>
+                                    </div>
+                                    <textarea class="hidden">Tenant shall indemnify, defend, and hold harmless Landlord from and against any and all claims, damages, liabilities, costs, and expenses, including reasonable attorneys' fees, arising from or related to Tenant's use or occupancy of the Leased Premises, any breach of this Lease by Tenant, or any negligent act or omission of Tenant, its agents, employees, or invitees, except to the extent caused by the gross negligence or willful misconduct of Landlord.</textarea>
+                                    <textarea class="hidden">IN NO EVENT SHALL EITHER PARTY'S AGGREGATE LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT EXCEED THE TOTAL AMOUNT PAID BY CUSTOMER HEREUNDER IN THE 12 MONTHS PRECEDING THE INCIDENT. NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-900 p-8 rounded-lg border border-gray-700">
+                            <div class="flex items-start">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-lg w-14 h-14 flex items-center justify-center mr-6 flex-shrink-0 text-2xl">🎓</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">For Law Students</h3>
+                                    <p class="text-gray-400 mb-4">Understand complex clauses, learn how standard agreements are structured, and develop skills in contract analysis. Compare different clause formulations and their implications.</p>
+                                    <button class="use-case-btn bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-500 transition-colors">Confidentiality Clause</button>
+                                    <textarea class="hidden">The receiving party shall hold in strict confidence and shall not disclose any of the disclosing party's Confidential Information, except as expressly permitted herein. The receiving party shall use the Confidential Information solely for the purpose of this Agreement and shall protect such information with the same degree of care, but no less than a reasonable degree of care, as it uses to protect its own confidential information.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-900 p-8 rounded-lg border border-gray-700">
+                            <div class="flex items-start">
+                                <div class="bg-indigo-900 text-indigo-300 rounded-lg w-14 h-14 flex items-center justify-center mr-6 flex-shrink-0 text-2xl">🚀</div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-white mb-2">For Business Owners & Startups</h3>
+                                    <p class="text-gray-400 mb-4">Review vendor agreements, partnership deals, and investor documents without immediate legal costs. Identify unusual clauses and understand common market terms before consulting counsel.</p>
+                                    <button class="use-case-btn bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-500 transition-colors">Termination Clause</button>
+                                    <textarea class="hidden">Either party may terminate this Agreement upon thirty (30) days written notice to the other party. Upon termination, Customer shall pay all unpaid fees for services rendered prior to termination. Sections 3 (Confidentiality), 4 (Intellectual Property), 5 (Payment), 7 (Termination), and 9 (Miscellaneous) shall survive termination.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer id="contact" class="bg-gray-900 py-12 mt-16 border-t border-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-4">Project Legis</h3>
+                    <p class="text-gray-400 mb-4">An experimental platform exploring the intersection of AI and legal analysis. Not a substitute for professional legal advice.</p>
+                    <p class="text-gray-500 text-sm">Powered by Google Gemini AI • Built with Node.js and Express</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-4">Experimental Release</h3>
+                    <p class="text-gray-400 mb-4">This is a beta version of Project Legis. Features may change, and analysis should be verified by legal professionals.</p>
+                    <p class="text-gray-500 text-sm">© 2025 Riley Ward • Personal Project</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

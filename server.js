@@ -1,408 +1,332 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const pages = document.querySelectorAll('.page-content');
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    function showPage(pageId) {
-        pages.forEach(page => page.classList.toggle('active', page.id === pageId));
-        navLinks.forEach(link => {
-            const linkPage = link.dataset.page || (link.getAttribute('href') ? link.getAttribute('href').substring(1) : null);
-            link.classList.toggle('active', linkPage === pageId);
-        });
-        window.scrollTo(0, 0);
-        
-        // Close selection analysis panel when navigating to any page
-        const panel = document.getElementById('selectionAnalysisPanel');
-        if (panel) panel.style.display = 'none';
+import express from 'express';
+import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
+import { standards } from './market_standards.js';
+import { specialists } from './specialist_prompts.js';
+import legalDictionary from './legal_dictionary.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+const jobs = {};
+
+const cleanAndParseJson = (rawText) => {
+    try {
+        return JSON.parse(rawText);
+    } catch (e) {
+        throw new Error(`Failed to parse guaranteed JSON from AI. Original error: ${e.message}. AI response: ${rawText}`);
     }
+};
+
+// Helper: normalize phrase for deduplication
+const normalizePhrase = (phrase) => {
+    return phrase
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '') // Remove punctuation
+        .replace(/\s+/g, ' ');   // Normalize whitespace
+};
+
+const postProcessAnnotations = (headingAnns, substantiveAnns, specialistAnns, originalText) => {
+    // Combine all annotations
+    const allAnnotations = [
+        ...(headingAnns || []),
+        ...(substantiveAnns || []),
+        ...(specialistAnns || [])
+    ];
     
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const pageId = e.currentTarget.dataset.page || e.currentTarget.getAttribute('href').substring(1);
-            showPage(pageId);
-        });
-    });
-
-    const analystPage = document.getElementById('analyst');
-    if (analystPage) {
-        // Use document.getElementById for more reliable element selection
-        const inputText = document.getElementById('inputText');
-        const clauseTypeSelect = document.getElementById('clauseType');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const resultsSection = document.getElementById('resultsSection');
-        const yourClauseOutput = document.getElementById('yourClauseOutput');
-        const marketAnalysisOutput = document.getElementById('marketAnalysisOutput');
-        const inputForm = document.getElementById('inputForm');
-        const resetBtn = document.getElementById('resetBtn');
-        const tooltip = document.createElement('div');
-        tooltip.id = 'tooltip';
-        document.body.appendChild(tooltip);
-
-        let pollingInterval;
-
-        // Check if all required elements exist before setting up event listeners
-        if (inputText && clauseTypeSelect && analyzeBtn && resultsSection && 
-            yourClauseOutput && marketAnalysisOutput && inputForm && resetBtn) {
-            
-            function checkInputs() {
-                analyzeBtn.disabled = inputText.value.trim() === '' || clauseTypeSelect.value === '';
-            }
-
-            function resetView() {
-                clearInterval(pollingInterval);
-                resultsSection.classList.add('hidden');
-                inputForm.style.display = 'block';
-                inputText.value = '';
-                clauseTypeSelect.value = '';
-                checkInputs();
-                
-                // Close selection analysis panel on reset
-                const panel = document.getElementById('selectionAnalysisPanel');
-                if (panel) panel.style.display = 'none';
-            }
-
-            inputText.addEventListener('input', checkInputs);
-            clauseTypeSelect.addEventListener('change', checkInputs);
-            analyzeBtn.addEventListener('click', startAnalysisJob);
-            resetBtn.addEventListener('click', resetView);
-
-            async function startAnalysisJob() {
-                resultsSection.classList.remove('hidden');
-                inputForm.style.display = 'none';
-                yourClauseOutput.innerHTML = `<div class="loading-placeholder"><p class="text-gray-400 italic">Preparing interactive document...</p></div>`;
-                marketAnalysisOutput.innerHTML = `<div class="loading-placeholder"><p class="text-gray-400 italic">Generating market analysis...</p><div class="progress-bar-container mt-4"><div class="progress-bar-indeterminate"></div></div></div>`;
-
-                try {
-                    const response = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userClause: inputText.value, clauseType: clauseTypeSelect.value })
-                    });
-                    if (!response.ok) throw new Error((await response.json()).error);
-                    const { jobId } = await response.json();
-                    pollForResult(jobId);
-                } catch (error) {
-                    marketAnalysisOutput.innerHTML = `<p class="text-red-400">An error occurred: ${error.message}</p>`;
-                    yourClauseOutput.innerHTML = '';
-                }
-            }
-
-            function pollForResult(jobId) {
-                let attempts = 0;
-                pollingInterval = setInterval(async () => {
-                    attempts++;
-                    if (attempts > 60) {
-                        clearInterval(pollingInterval);
-                        marketAnalysisOutput.innerHTML = `<p class="text-red-400">Analysis timed out. Please try again.</p>`;
-                        yourClauseOutput.innerHTML = '';
-                        return;
-                    }
-                    try {
-                        const statusResponse = await fetch(`/api/status/${jobId}`);
-                        if (!statusResponse.ok) return;
-                        const result = await statusResponse.json();
-                        if (result.status === 'complete') {
-                            clearInterval(pollingInterval);
-                            renderMainAnalysis(result.data.mainAnalysis);
-                        } else if (result.status === 'error') {
-                            clearInterval(pollingInterval);
-                            marketAnalysisOutput.innerHTML = `<p class="text-red-400">An error occurred during analysis: ${result.error}</p>`;
-                            yourClauseOutput.innerHTML = '';
-                        }
-                    } catch (e) { /* Ignore fetch errors */ }
-                }, 3000);
-            }
-
-            function renderMainAnalysis(mainAnalysis) {
-                if (mainAnalysis && !mainAnalysis.error) {
-                    marketAnalysisOutput.innerHTML = formatMarkdown(mainAnalysis.marketAnalysis || '');
-                    renderInteractiveClause(mainAnalysis.inlineAnnotations || []);
-                } else {
-                    marketAnalysisOutput.innerHTML = `<p class="text-yellow-400">${mainAnalysis?.error || 'Analysis data is missing.'}</p>`;
-                    yourClauseOutput.innerHTML = `<p>${escapeHTML(inputText.value)}</p>`;
-                }
-            }
-
-            function formatMarkdown(text) {
-                if (typeof text !== 'string') return '';
-                const lines = escapeHTML(text).split('\n');
-                let html = '';
-                let inList = false;
-                lines.forEach(line => {
-                    line = line.trim();
-                    line = line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-100">$1</strong>');
-                    if (line.startsWith('#')) {
-                        if (inList) { html += '</ul>'; inList = false; }
-                        const headingText = line.replace(/^#+\s*/, '');
-                        html += `<h3 class="text-lg font-semibold text-indigo-300 mb-3 mt-6 border-b border-gray-700 pb-2">${headingText}</h3>`;
-                        return;
-                    }
-                    if (line.startsWith('-') || line.startsWith('*')) {
-                        if (!inList) { html += '<ul class="list-disc list-inside space-y-2 mb-4">'; inList = true; }
-                        html += `<li class="ml-4">${line.replace(/^[\*-]\s*/, '')}</li>`;
-                        return;
-                    }
-                    if (inList) { html += '</ul>'; inList = false; }
-                    if (line.length > 0) { html += `<p class="mb-4">${line}</p>`; }
-                });
-                if (inList) { html += '</ul>'; }
-                return html;
-            }
-            
-            // FIXED: Prevent partial word matching
-            function renderInteractiveClause(annotations) {
-                const originalText = inputText.value;
-                
-                // Helper function to check if character is word boundary
-                function isWordBoundary(char) {
-                    return !(/[a-zA-Z0-9]/).test(char);
-                }
-
-                // 1. Find all occurrences with boundary checking
-                const positions = [];
-                annotations.forEach(ann => {
-                    if (!ann.phrase) return;
-                    
-                    const regex = new RegExp(escapeRegExp(ann.phrase), 'gi');
-                    let match;
-                    while ((match = regex.exec(originalText)) !== null) {
-                        const start = match.index;
-                        const end = start + match[0].length;
-                        
-                        // Check boundaries
-                        const prevChar = start > 0 ? originalText[start - 1] : '';
-                        const nextChar = end < originalText.length ? originalText[end] : '';
-                        
-                        // Only include if surrounded by word boundaries
-                        if (isWordBoundary(prevChar) && isWordBoundary(nextChar)) {
-                            positions.push({
-                                start,
-                                end,
-                                explanation: ann.explanation,
-                                phrase: ann.phrase,
-                                matchedText: match[0]
-                            });
-                        }
-                    }
-                });
-
-                // 2. Filter and sort
-                let filteredPositions = positions.filter(pos => {
-                    const phrase = pos.matchedText;
-                    return phrase.length >= 4 && 
-                        !/\b(a|an|the|and|or|of|in|to|by|for)\b/i.test(phrase);
-                });
-
-                filteredPositions.sort((a, b) => {
-                    if (a.start !== b.start) return a.start - b.start;
-                    return (b.end - b.start) - (a.end - a.start);
-                });
-
-                // 3. Build HTML with non-overlapping highlights
-                let lastEnd = 0;
-                let htmlFragments = [];
-                
-                for (const pos of filteredPositions) {
-                    // Skip positions inside previous highlights
-                    if (pos.start < lastEnd) continue;
-                    
-                    // Add text before this highlight
-                    if (pos.start > lastEnd) {
-                        const before = originalText.substring(lastEnd, pos.start);
-                        htmlFragments.push(escapeHTML(before));
-                    }
-                    
-                    // Add the highlighted portion
-                    htmlFragments.push(
-                        `<span class="highlight" data-explanation="${escapeHTML(pos.explanation)}">${escapeHTML(pos.matchedText)}</span>`
-                    );
-                    
-                    lastEnd = pos.end;
-                }
-                
-                // Add remaining text
-                if (lastEnd < originalText.length) {
-                    const after = originalText.substring(lastEnd);
-                    htmlFragments.push(escapeHTML(after));
-                }
-
-                // 4. Set final HTML with proper line breaks
-                yourClauseOutput.innerHTML = htmlFragments.join('').replace(/\n/g, '<br>');
-            }
-            
-            // Enhanced selection analysis UI
-            const selectionAnalysisBtn = document.createElement('button');
-            selectionAnalysisBtn.id = 'selectionAnalysisBtn';
-            selectionAnalysisBtn.textContent = 'Analyze Selection';
-            selectionAnalysisBtn.className = 'hidden fixed bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 font-medium';
-            document.body.appendChild(selectionAnalysisBtn);
-
-            const selectionAnalysisPanel = document.createElement('div');
-            selectionAnalysisPanel.id = 'selectionAnalysisPanel';
-            selectionAnalysisPanel.className = 'fixed right-0 top-0 h-full w-full md:w-1/3 bg-gray-900 p-0 overflow-hidden shadow-xl z-40 hidden flex flex-col';
-            selectionAnalysisPanel.innerHTML = `
-                <div class="bg-indigo-900 py-3 px-4 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-white">Selected Text Analysis</h3>
-                    <button id="closePanel" class="text-white hover:text-indigo-200 text-xl font-bold">×</button>
-                </div>
-                <div id="selectionAnalysisContent" class="p-4 overflow-auto flex-grow"></div>
-            `;
-            document.body.appendChild(selectionAnalysisPanel);
-
-            // Close panel handler
-            const closePanelBtn = document.getElementById('closePanel');
-            if (closePanelBtn) {
-                closePanelBtn.addEventListener('click', () => {
-                    selectionAnalysisPanel.style.display = 'none';
-                });
-            }
-            
-            // Close panel when clicking outside of it
-            document.addEventListener('click', (e) => {
-                const panel = document.getElementById('selectionAnalysisPanel');
-                if (panel && panel.style.display === 'flex' && 
-                    !panel.contains(e.target) && 
-                    e.target !== selectionAnalysisBtn) {
-                    panel.style.display = 'none';
-                }
+    // Add dictionary-based annotations
+    const dictionaryAnnotations = [];
+    for (const term in legalDictionary) {
+        if (originalText.toLowerCase().includes(term.toLowerCase())) {
+            dictionaryAnnotations.push({
+                phrase: term,
+                explanation: legalDictionary[term]
             });
-
-            // Text selection handler
-            yourClauseOutput.addEventListener('mouseup', (e) => {
-                // Only show button if we're in results view
-                if (resultsSection.classList.contains('hidden')) return;
-                
-                const selection = window.getSelection();
-                const selectedText = selection.toString().trim();
-                
-                // Only proceed if we have valid selection in the clause output
-                if (selectedText.length > 3) {
-                    const range = selection.getRangeAt(0);
-                    const rect = range.getBoundingClientRect();
-                    selectionAnalysisBtn.style.display = 'block';
-                    selectionAnalysisBtn.style.top = `${rect.bottom + window.scrollY + 5}px`;
-                    selectionAnalysisBtn.style.left = `${rect.left + window.scrollX}px`;
-                    selectionAnalysisBtn.dataset.selection = selectedText;
-                } else {
-                    selectionAnalysisBtn.style.display = 'none';
-                }
-            });
-
-            // Hide button when clicking elsewhere
-            document.addEventListener('mousedown', (e) => {
-                if (e.target !== selectionAnalysisBtn && !yourClauseOutput.contains(e.target)) {
-                    selectionAnalysisBtn.style.display = 'none';
-                }
-            });
-
-            // Selection analysis handler
-            selectionAnalysisBtn.addEventListener('click', async () => {
-                const selectedText = selectionAnalysisBtn.dataset.selection;
-                if (!selectedText) return;
-                
-                selectionAnalysisBtn.style.display = 'none';
-                selectionAnalysisPanel.style.display = 'flex';
-                
-                const contentDiv = document.getElementById('selectionAnalysisContent');
-                contentDiv.innerHTML = `
-                    <div class="py-4">
-                        <div class="flex items-center justify-center mb-4">
-                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
-                        </div>
-                        <p class="text-center text-gray-400">Analyzing selected text...</p>
-                    </div>
-                `;
-                
-                try {
-                    const response = await fetch('/api/analyze-selection', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            selectedText,
-                            fullText: inputText.value,
-                            clauseType: clauseTypeSelect.value
-                        })
-                    });
-                    
-                    if (!response.ok) throw new Error(await response.text());
-                    const analysis = await response.json();
-                    
-                    contentDiv.innerHTML = `
-                        <div class="mb-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
-                            <p class="font-mono text-sm text-gray-300">"${escapeHTML(selectedText)}"</p>
-                        </div>
-                        <div class="analysis-content text-gray-300">${formatMarkdown(analysis.explanation)}</div>
-                    `;
-                } catch (error) {
-                    contentDiv.innerHTML = `
-                        <div class="p-4 text-red-400">
-                            <h3 class="text-lg font-semibold mb-2">Analysis Error</h3>
-                            <p>${error.message}</p>
-                        </div>
-                    `;
-                }
-            });
-            
-            document.addEventListener('mouseover', e => {
-                if (e.target.classList.contains('highlight')) {
-                    tooltip.textContent = e.target.dataset.explanation;
-                    tooltip.style.display = 'block';
-                }
-            });
-            document.addEventListener('mouseout', e => {
-                if (e.target.classList.contains('highlight')) {
-                    tooltip.style.display = 'none';
-                }
-            });
-            document.addEventListener('mousemove', e => {
-                if (tooltip.style.display === 'block') {
-                    tooltip.style.left = e.pageX + 15 + 'px';
-                    tooltip.style.top = e.pageY + 15 + 'px';
-                }
-            });
-
-            function escapeRegExp(string) { 
-                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
-            }
-            function escapeHTML(str) {
-                if (typeof str !== 'string') return '';
-                const div = document.createElement('div');
-                div.appendChild(document.createTextNode(str));
-                return div.innerHTML;
-            }
-        } else {
-            console.error('One or more elements for the analyst page are missing');
         }
     }
+    
+    const uniqueAnnotations = [];
+    const seenPhrases = new Set();
 
-    const useCasesPage = document.getElementById('use-cases');
-    if (useCasesPage) {
-        useCasesPage.querySelectorAll('.use-case-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const text = button.nextElementSibling.value;
-                const analystInput = document.getElementById('inputText');
-                const clauseTypeSelect = document.getElementById('clauseType');
-                if (analystInput && clauseTypeSelect) {
-                    analystInput.value = text;
-                    const buttonText = button.textContent.toLowerCase();
-                    if (buttonText.includes('indemnification')) clauseTypeSelect.value = 'indemnification';
-                    else if (buttonText.includes('confidentiality')) clauseTypeSelect.value = 'confidentiality';
-                    else if (buttonText.includes('liability')) clauseTypeSelect.value = 'limitation_of_liability';
-                    
-                    const analyzeBtn = document.getElementById('analyzeBtn');
-                    const resultsSection = document.getElementById('resultsSection');
-                    const inputForm = document.getElementById('inputForm');
-                    
-                    if (analyzeBtn && resultsSection && inputForm) {
-                        analyzeBtn.disabled = false;
-                        resultsSection.classList.add('hidden');
-                        inputForm.style.display = 'block';
+    for (const annotation of [...allAnnotations, ...dictionaryAnnotations]) {
+        const phrase = annotation?.phrase?.trim();
+        if (phrase) {
+            const normalized = normalizePhrase(phrase);
+            // Minimum length of 4 characters and not already seen
+            if (normalized.length >= 4 && !seenPhrases.has(normalized)) {
+                uniqueAnnotations.push(annotation);
+                seenPhrases.add(normalized);
+            }
+        }
+    }
+    return uniqueAnnotations;
+};
+
+app.use(express.json());
+
+// Serve static files from the 'public' directory with proper MIME types
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+app.post('/api/analyze', (req, res) => {
+    const { userClause, clauseType } = req.body;
+    if (!userClause || !clauseType) return res.status(400).json({ error: 'Clause and type required.' });
+
+    const jobId = crypto.randomUUID();
+    jobs[jobId] = { status: 'pending' };
+    res.status(202).json({ jobId });
+
+    (async () => {
+        try {
+            // ## REVISED SUMMARY AGENT PROMPT ##
+            const summaryPrompt = `As a legal analysis engine, analyze the provided legal text from a strategic perspective. Consider:
+1. The primary clause type: ${standards[clauseType]?.name || clauseType}
+2. Market standards for similar clauses
+3. Potential risks for the client
+4. Negotiation leverage points
+
+Provide a concise report in markdown format with these sections:
+## Key Strengths
+## Potential Weaknesses
+## Overall Fairness Assessment
+## Strategic Recommendations
+
+Be direct and actionable. Do not include any introductory or closing remarks like "To: Client" or "From: ...". Start directly with the first section heading.
+
+---DOCUMENT---
+${userClause}`;
+            const summaryPromise = fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: summaryPrompt }] }]
+                })
+            });
+
+            // --- ENHANCED HEADING ANALYSIS AGENT ---
+            const headingPrompt = `You are a legal document parser. Identify EVERY section heading in the document below, including:
+- Numbered headings (e.g., "1. Scope", "2. Limitation")
+- Unnumbered headings
+- Subheadings
+- Section titles in ALL CAPS
+- Headers with Roman numerals
+- Titles following "ARTICLE" or "SECTION"
+
+For EACH heading:
+1. Extract the EXACT heading text including any numbering
+2. Provide a concise explanation of its legal significance
+
+Return ONLY a JSON object with "annotations" array containing objects with "phrase" and "explanation" keys.
+
+---DOCUMENT---
+${userClause}`;
+            const headingPromise = fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: headingPrompt }] }],
+                    generationConfig: { response_mime_type: "application/json" }
+                })
+            });
+
+            // --- ENHANCED SUBSTANTIVE ANALYSIS AGENT ---
+            const substantivePrompt = `You are a legal analyst. Identify and explain ALL legally significant phrases in the document body including:
+- Terms of art (e.g., "force majeure", "joint and several liability")
+- Critical obligations (e.g., "shall indemnify", "covenant not to sue")
+- Limitations of rights (e.g., "irrevocable license", "perpetual right")
+- Liability terms (e.g., "consequential damages", "liquidated damages")
+- Temporal phrases (e.g., "survive termination", "in perpetuity")
+- Key modifiers (e.g., "sole discretion", "material adverse effect")
+- Scope definitions (e.g., "including but not limited to")
+- Notice provisions (e.g., "deemed received upon transmission")
+- Governing law clauses
+- Any phrase defining rights, obligations, or limitations
+- Standard legal boilerplate with legal significance
+
+Return ONLY a JSON object with "annotations" array containing objects with "phrase" (exact text) and "explanation" keys.
+
+---DOCUMENT---
+${userClause}`;
+            const substantivePromise = fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: substantivePrompt }] }],
+                    generationConfig: { response_mime_type: "application/json" }
+                })
+            });
+
+            // --- AGENT 4: SPECIALIST AGENTS (Parallel) ---
+            let specialistAnnotations = [];
+            try {
+                const specialistEntries = Object.entries(specialists);
+                const specialistResults = await Promise.all(
+                    specialistEntries.map(async ([key, specialist]) => {
+                        const prompt = `${specialist.prompt}\n\n---DOCUMENT---\n${userClause}`;
+                        try {
+                            const response = await fetch(API_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                                    generationConfig: { response_mime_type: "application/json" }
+                                })
+                            });
+                            return { response, specialist, error: null };
+                        } catch (e) {
+                            return { response: null, specialist, error: e };
+                        }
+                    })
+                );
+
+                for (const { response, specialist, error } of specialistResults) {
+                    if (error) {
+                        console.error(`Specialist ${specialist.name} failed:`, error);
+                        continue;
+                    }
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        try {
+                            const data = cleanAndParseJson(result.candidates[0].content.parts[0].text);
+                            if (data.is_problematic && data.problematic_phrase) {
+                                specialistAnnotations.push({
+                                    phrase: data.problematic_phrase,
+                                    explanation: `${specialist.name}: ${data.reason}`
+                                });
+                            }
+                        } catch (parseError) {
+                            console.error(`Failed to parse response from ${specialist.name}:`, parseError);
+                        }
+                    } else if (response) {
+                        console.error(`Specialist ${specialist.name} returned error: ${response.status}`);
                     }
                 }
-                showPage('analyst');
-            });
-        });
-    }
+            } catch (e) {
+                console.error('Specialist analysis failed:', e);
+            }
 
-    showPage('home');
+            // --- RUN MAIN AGENTS IN PARALLEL ---
+            const [summaryResponse, headingResponse, substantiveResponse] = await Promise.all([
+                summaryPromise,
+                headingPromise,
+                substantivePromise
+            ]);
+
+            if (!summaryResponse.ok) throw new Error(`Summary Agent failed: ${summaryResponse.statusText}`);
+            if (!headingResponse.ok) throw new Error(`Heading Agent failed: ${headingResponse.statusText}`);
+            if (!substantiveResponse.ok) throw new Error(`Substantive Agent failed: ${substantiveResponse.statusText}`);
+
+            // --- PROCESS RESULTS ---
+            const summaryResult = await summaryResponse.json();
+            const marketAnalysis = summaryResult.candidates[0].content.parts[0].text;
+
+            const headingResult = await headingResponse.json();
+            const headingAnnotations = cleanAndParseJson(headingResult.candidates[0].content.parts[0].text)?.annotations || [];
+
+            const substantiveResult = await substantiveResponse.json();
+            const substantiveAnnotations = cleanAndParseJson(substantiveResult.candidates[0].content.parts[0].text)?.annotations || [];
+            
+            // --- COMBINE & FINALIZE ---
+            const finalAnnotations = postProcessAnnotations(
+                headingAnnotations,
+                substantiveAnnotations,
+                specialistAnnotations,
+                userClause
+            );
+            
+            jobs[jobId] = {
+                status: 'complete',
+                data: {
+                    mainAnalysis: {
+                        marketAnalysis,
+                        inlineAnnotations: finalAnnotations
+                    }
+                }
+            };
+
+        } catch (error) {
+            console.error(`Job ${jobId} failed:`, error);
+            jobs[jobId] = { status: 'error', error: `Analysis failed: ${error.message}` };
+        }
+    })();
 });
+
+// Selection analysis endpoint
+app.post('/api/analyze-selection', async (req, res) => {
+    const { selectedText, fullText, clauseType } = req.body;
+    if (!selectedText) return res.status(400).json({ error: 'No text selected' });
+
+    try {
+        const prompt = `As a legal expert, analyze the significance of the selected text in the context of the full document and clause type (${
+            standards[clauseType]?.name || clauseType
+        }).
+
+Selected Text: """
+${selectedText}
+"""
+
+Full Document Context: """
+${fullText}
+"""
+
+Provide analysis covering:
+1. Legal meaning and implications
+2. How it compares to market standards
+3. Potential risks or advantages
+4. Strategic recommendations
+5. Any ambiguous or problematic language
+
+Use markdown formatting with clear headings.`;
+        
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: prompt }] }]
+            })
+        });
+        
+        if (!response.ok) throw new Error('AI analysis failed');
+        const result = await response.json();
+        const explanation = result.candidates[0].content.parts[0].text;
+        res.json({ explanation });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/status/:jobId', (req, res) => {
+    const { jobId } = req.params;
+    const job = jobs[jobId];
+    if (!job) return res.status(404).json({ status: 'error', error: 'Job not found.' });
+    res.json(job);
+    if (job.status === 'complete' || job.status === 'error') {
+        delete jobs[jobId];
+    }
+});
+
+// Handle SPA routing by sending index.html for all routes
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, '0.0.0.0', () => console.log(`Server is running on http://localhost:${PORT}`));

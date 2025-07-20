@@ -56,9 +56,9 @@
             </section>
         </div>
 
-        <div id="analyst" class="page-content">
-                    <div class="container mx-auto px-6 py-16">
-                <div class="max-w-4xl mx-auto">
+                <div id="analyst" class="page-content">
+            <div class="container mx-auto px-6 py-16">
+                <div class="max-w-6xl mx-auto"> <!-- Increased width -->
                     <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 text-center">Contract Clause Analyst</h2>
                     <div id="inputForm" class="bg-gray-900 border border-gray-800 rounded-xl p-6 md:p-8 mb-8">
                         <div class="mb-6">
@@ -82,20 +82,22 @@
                             <button id="analyzeBtn" disabled class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50">Analyze</button>
                         </div>
                     </div>
+
                     <div id="resultsSection" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-6 md:p-8">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xl font-semibold text-indigo-300">Analysis Results</h3>
                             <button id="resetResultsBtn" class="bg-gray-700 text-gray-300 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div>
+                        <!-- Improved layout with flex columns -->
+                        <div class="flex flex-col lg:flex-row gap-8">
+                            <div class="lg:w-1/2">
                                 <h4 class="text-lg font-medium text-gray-300 mb-4">Your Clause</h4>
-                                <div id="yourClauseOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[200px]"></div>
+                                <div id="yourClauseOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[300px] max-h-[60vh] overflow-y-auto"></div>
                             </div>
-                            <div>
+                            <div class="lg:w-1/2">
                                 <h4 class="text-lg font-medium text-gray-300 mb-4">Market Analysis</h4>
-                                <div id="marketAnalysisOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[200px]"></div>
+                                <div id="marketAnalysisOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[300px] max-h-[60vh] overflow-y-auto"></div>
                             </div>
                         </div>
                     </div>

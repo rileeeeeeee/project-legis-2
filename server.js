@@ -76,10 +76,17 @@ const postProcessAnnotations = (headingAnns, substantiveAnns, specialistAnns, or
 
 app.use(express.json());
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from the 'public' directory with proper MIME types
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
 
-// API Routes
 app.post('/api/analyze', (req, res) => {
     const { userClause, clauseType } = req.body;
     if (!userClause || !clauseType) return res.status(400).json({ error: 'Clause and type required.' });
@@ -263,7 +270,7 @@ ${userClause}`;
     })();
 });
 
-// NEW: Selection analysis endpoint
+// Selection analysis endpoint
 app.post('/api/analyze-selection', async (req, res) => {
     const { selectedText, fullText, clauseType } = req.body;
     if (!selectedText) return res.status(400).json({ error: 'No text selected' });

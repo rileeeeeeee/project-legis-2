@@ -57,7 +57,50 @@
         </div>
 
         <div id="analyst" class="page-content">
-            <!-- Analyst content remains the same as before -->
+                    <div class="container mx-auto px-6 py-16">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-8 text-center">Contract Clause Analyst</h2>
+                    <div id="inputForm" class="bg-gray-900 border border-gray-800 rounded-xl p-6 md:p-8 mb-8">
+                        <div class="mb-6">
+                            <label for="clauseType" class="block text-gray-300 mb-3 font-medium">Clause Type</label>
+                            <select id="clauseType" class="w-full bg-gray-800 text-gray-300 border border-gray-700 rounded-lg py-3 px-4 focus:outline-none focus:border-indigo-500">
+                                <option value="" disabled selected>Select clause type</option>
+                                <option value="indemnification">Indemnification</option>
+                                <option value="limitation_of_liability">Limitation of Liability</option>
+                                <option value="confidentiality">Confidentiality</option>
+                                <option value="termination">Termination</option>
+                                <option value="governing_law">Governing Law</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-6">
+                            <label for="inputText" class="block text-gray-300 mb-3 font-medium">Paste Your Clause</label>
+                            <textarea id="inputText" rows="6" class="w-full bg-gray-800 text-gray-300 border border-gray-700 rounded-lg py-3 px-4 focus:outline-none focus:border-indigo-500" placeholder="Paste your legal clause here..."></textarea>
+                        </div>
+                        <div class="flex justify-between">
+                            <button id="resetBtn" class="bg-gray-700 text-gray-300 font-semibold py-3 px-6 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                            <button id="analyzeBtn" disabled class="bg-indigo-600 text-white font-semibold py-3 px-8 rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50">Analyze</button>
+                        </div>
+                    </div>
+                    <div id="resultsSection" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-6 md:p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-semibold text-indigo-300">Analysis Results</h3>
+                            <button id="resetResultsBtn" class="bg-gray-700 text-gray-300 font-semibold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors">Reset</button>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-300 mb-4">Your Clause</h4>
+                                <div id="yourClauseOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[200px]"></div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-300 mb-4">Market Analysis</h4>
+                                <div id="marketAnalysisOutput" class="bg-gray-800 border border-gray-700 rounded-lg p-4 min-h-[200px]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="how-it-works" class="page-content">

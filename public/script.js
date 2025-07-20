@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showPage(pageId) {
         pages.forEach(page => page.classList.toggle('active', page.id === pageId));
         navLinks.forEach(link => {
-            const linkPage = link.dataset.page || (link.getAttribute('href') ? link.getAttribute('href').substring(1) : null;
+            const linkPage = link.dataset.page || (link.getAttribute('href') ? link.getAttribute('href').substring(1) : null);
             link.classList.toggle('active', linkPage === pageId);
         });
         window.scrollTo(0, 0);
@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const marketAnalysisOutput = analystPage.querySelector('#marketAnalysisOutput');
         const inputForm = analystPage.querySelector('#inputForm');
         const resetBtn = analystPage.querySelector('#resetBtn');
-        const resetResultsBtn = analystPage.querySelector('#resetResultsBtn'); // ADDED
         const tooltip = document.createElement('div');
         tooltip.id = 'tooltip';
         document.body.appendChild(tooltip);
@@ -61,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clauseTypeSelect.addEventListener('change', checkInputs);
         analyzeBtn.addEventListener('click', startAnalysisJob);
         resetBtn.addEventListener('click', resetView);
-        if (resetResultsBtn) resetResultsBtn.addEventListener('click', resetView); // ADDED
 
         async function startAnalysisJob() {
             resultsSection.classList.remove('hidden');
